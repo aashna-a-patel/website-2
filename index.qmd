@@ -1,0 +1,61 @@
+---
+title: "Billboard Graphic"
+execute:
+  echo: false
+---
+
+```{r}
+suppressPackageStartupMessages(library(tidyverse))
+```
+
+```{r}
+# Load necessary libraries
+library(tidyr)
+
+# Load the billboard dataset
+data("billboard")
+
+# Take a look at the structure of the data
+glimpse(billboard)
+
+# Ask ChatGPT to create a cool-looking plot
+# Prompt: "Hey ChatGPT, can you create a cool-looking plot using the billboard tibble from tidyr and ggplot()? I'd like it to show something interesting like how songs move up and down the Billboard chart over time."
+
+# Example Plot:
+# We'll plot the chart position over time for the top 5 songs with the longest chart runs
+
+# Reshape the data to long format
+billboard_long <- billboard %>%
+  pivot_longer(
+    cols = starts_with("wk"),
+    names_to = "week",
+    names_prefix = "wk",
+    values_to = "rank",
+    values_drop_na = TRUE
+  ) %>%
+  mutate(week = as.integer(week))
+
+# Get the top 5 songs with the most weeks on the chart
+top_songs <- billboard_long %>%
+  count(track, sort = TRUE) %>%
+  slice_max(n, n = 5) %>%
+  pull(track)
+
+# Plot chart position over time for top 5 songs
+billboard_long %>%
+  filter(track %in% top_songs) %>%
+  ggplot(aes(x = week, y = rank, color = track)) +
+  geom_line(size = 1.2) +
+  scale_y_reverse() +
+  labs(
+    title = "Chart Performance of Top 5 Billboard Songs (by Longevity)",
+    x = "Week on Chart",
+    y = "Billboard Rank (1 = Top)",
+    color = "Track"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold", hjust = 0.5),
+    legend.position = "bottom"
+  )
+```
